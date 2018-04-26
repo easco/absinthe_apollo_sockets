@@ -14,6 +14,8 @@ defmodule ApolloSocket do
     |> create_socket(other_opts)
   end
 
+  def websocket(apollo_socket), do: apollo_socket.websocket
+
   def handle_json_message(apollo_socket, json_string) when is_binary(json_string) do
     try do
       decoded = Jason.decode!(json_string)
@@ -21,13 +23,20 @@ defmodule ApolloSocket do
 
       Logger.debug("ApolloSocket: received #{inspect message}")
 
-      case apollo_socket.message_handler.handle_message(message, apollo_socket.message_handler_opts) do
+      case apollo_socket.message_handler.handle_message(apollo_socket, message, apollo_socket.message_handler_opts) do
         {:ok, new_opts} ->
           # update self with new handler context
           {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
 
         {:reply, %OperationMessage{} = message, new_opts} ->
           send_message(apollo_socket, message)
+          {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
+
+        {:reply, messages, new_opts} when is_list(messages) ->
+          Enum.each(messages, &send_message(apollo_socket, &1))
+          {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
+
+        {:subscribed, _, new_opts} ->
           {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
       end
     rescue
