@@ -4,20 +4,20 @@ defmodule ApolloCowboyExample do
     # for the apollo sockets.
     dispatch =
       :cowboy_router.compile([
-        {:_,
-         [
-           {"/socket/websocket", ApolloSocket.CowboySocketHandler,
+        {:_, [
+          {"/socket/websocket", ApolloSocket.CowboySocketHandler,
             {
               ApolloSocket.AbsintheMessageHandler,
               schema: ApolloCowboyExample.Schema, 
               pubsub: ApolloCowboyExample.Absinthe.PubSub,
               broker_sup: ApolloCowboyExample.BrokerSupervisor
-            }}
-         ]}
+            }
+          }
+       ]}
       ])
 
     children = [
-      {ApolloCowboyExample.Counter, name: :example_counter},
+      {ApolloCowboyExample.Counter, []},
       phoenix_pubsub(ApolloCowboyExample.PubSub),
       absinthe_subscriptions(ApolloCowboyExample.Absinthe.PubSub),
       {DynamicSupervisor, strategy: :one_for_one, name: ApolloCowboyExample.BrokerSupervisor},

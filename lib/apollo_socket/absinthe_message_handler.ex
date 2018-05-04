@@ -22,7 +22,6 @@ defmodule ApolloSocket.AbsintheMessageHandler do
 
     case result do
       {:ok, %{"subscribed" => absinthe_subscription_id}} ->
-        IO.puts(:stderr, "Starting a data broker")
 
         {:ok, _} = DynamicSupervisor.start_child(opts[:broker_sup],
           data_broker_child_spec(
@@ -39,7 +38,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   end
 
   defp data_broker_child_spec(pubsub, absinthe_subscription_id, operation_id, socket) do
-    IO.inspect %{
+    %{
       type: :worker,
       id: absinthe_subscription_id,
       start: { ApolloSocket.DataBroker, :start_link, [[
