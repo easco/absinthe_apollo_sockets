@@ -13,8 +13,9 @@ defmodule ApolloSocket.AbsintheMessageHandler do
 
   @impl ApolloSocket.MessageHandler
   def handle_start(apollo_socket, operation_id, operation_name, graphql_doc, variables, opts) do
-    absinthe_opts = [variables: variables, context: %{pubsub: opts[:pubsub]}]
+    absinthe_opts = [context: %{pubsub: opts[:pubsub]}]
     |> add_operation_name(operation_name)
+    |> add_variables(variables)
 
     result = Absinthe.run(graphql_doc, opts[:schema], absinthe_opts)
 
@@ -53,6 +54,9 @@ defmodule ApolloSocket.AbsintheMessageHandler do
 
   defp add_operation_name(opts, nil), do: opts
   defp add_operation_name(opts, name), do: Keyword.put(opts, :operation_name, name)
+
+  defp add_variables(opts, nil), do: opts
+  defp add_variables(opts, variables), do: Keyword.put(opts, :variables, variables)
 
   defp messages_for_result(operation_id, query_response) when is_map(query_response) do
     [
