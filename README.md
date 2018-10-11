@@ -1,21 +1,13 @@
-# ApolloSocket
+# Absinthe and Apollo Sockets
 
-**TODO: Add description**
+[Absinthe](https://absinthe-graphql.org) is a library for the Elixir programming language that allows a developer to create and expose a GraphQL interface.
 
-## Installation
+[Apollo](https://www.apollographql.com) is a GraphQL system encorporating both Client and Server functionality.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `apollo_socket` to your list of dependencies in `mix.exs`:
+The GraphQL standard defines Subscriptions as a means of receiving event-based notifications through a GraphQL interface, and notes that Web Sockets is one means of transmitting events, but the GraphQL standard itself does not define the Web Socket protocol for communication.
 
-```elixir
-def deps do
-  [
-    {:apollo_socket, "~> 0.1.0"}
-  ]
-end
-```
+In the Elixir community [Absinthe Phoenix](https://github.com/absinthe-graphql/absinthe_phoenix) is a commonly used to forge a connection between a client and Absinthe using the [Phoenix Framework](https://phoenixframework.org) and its channel abstraction.
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/apollo_socket](https://hexdocs.pm/apollo_socket).
+Apollo, in contrast [defines its own web socket protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md).
 
+The purpose of this project is to implement the Apollo web socket protocol in Elixir and provide a means by which Apollo clients can invoke GraphQL Queries, Mutations and Subscriptions through a Web Socket based in the Apollo protocol communicating with Absinthe.
