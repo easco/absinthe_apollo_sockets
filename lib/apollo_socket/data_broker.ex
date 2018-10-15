@@ -26,6 +26,10 @@ defmodule ApolloSocket.DataBroker do
     GenServer.start_link(__MODULE__, broker_options, other_options)
   end
 
+  def stop(pid) do
+    GenServer.stop(pid)
+  end
+
   def init(options) do
     pubsub = Keyword.get(options, :pubsub)
     absinthe_id = Keyword.get(options, :absinthe_id)
@@ -34,6 +38,8 @@ defmodule ApolloSocket.DataBroker do
     subscribe_to_data(pubsub, absinthe_id)
     monitor_id = monitor_websocket(ApolloSocket.websocket(apollo_socket))
     call_init_callback(Keyword.get(options, :init_callback), options)
+
+    Process.flag(:trap_exit, true)
 
     {:ok, %{
       apollo_socket: apollo_socket,
@@ -44,9 +50,16 @@ defmodule ApolloSocket.DataBroker do
       }}
   end
 
+  def terminate(reason, state) do
+    Logger.debug("Tearing down data broker, got shutdown signal")
+    Absinthe.Subscription.unsubscribe(state.pubsub, state.absinthe_id)
+    :normal
+  end
+
   def handle_info({:DOWN, _ref, :process, _pid, reason}, state) do
-    IO.puts("Tearing down data broker")
+    Logger.debug("Tearing down data broker, websocket went down")
     # my websocket went down.  This process can exit now
+    Absinthe.Subscription.unsubscribe(state.pubsub, state.absinthe_id)
     Process.exit(self(), reason)
     {:noreply, state}
   end
