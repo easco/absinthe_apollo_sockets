@@ -50,7 +50,7 @@ defmodule ApolloSocket.DataBroker do
       }}
   end
 
-  def terminate(reason, state) do
+  def terminate(_reason, state) do
     Logger.debug("Tearing down data broker, got shutdown signal")
     Absinthe.Subscription.unsubscribe(state.pubsub, state.absinthe_id)
     :normal

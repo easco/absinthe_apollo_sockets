@@ -38,7 +38,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   end
 
   @impl ApolloSocket.MessageHandler
-  def handle_stop(apollo_socket, operation_id, opts) do
+  def handle_stop(_apollo_socket, operation_id, opts) do
     data_broker_pids =
       opts.broker_processes
       |> Enum.filter(&(elem(&1, 0) == operation_id))
@@ -59,7 +59,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   end
 
   @impl ApolloSocket.MessageHandler
-  def handle_info(apollo_socket, {:data_broker_started, operation_id, pid}, opts) do
+  def handle_info(_apollo_socket, {:data_broker_started, operation_id, pid}, opts) do
     new_opts = %{opts | broker_processes: [{operation_id, pid} | opts.broker_processes]}
     {:ok, new_opts}
   end
