@@ -28,6 +28,12 @@ defmodule ApolloSocket.CowboySocketHandler do
     {:reply, [{:text, json_string}], request, state}
   end
 
+  # this handler forwards an info message onto the message handler module
+  def websocket_info({:message_handler, message}, request, %{apollo_socket: apollo_socket}) do
+    {:ok, apollo_socket} = ApolloSocket.handle_message_handler_info(apollo_socket, message)
+    {:ok, request, %{apollo_socket: apollo_socket}}
+  end
+
   # generic message handler does nothing
   def websocket_info(message, request, state) do
     Logger.debug("CowboySocketHandler.websocket_info with message #{inspect message}")

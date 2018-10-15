@@ -23,28 +23,24 @@ defmodule ApolloSocket do
 
       Logger.debug("ApolloSocket: received #{inspect message}")
 
-      case apollo_socket.message_handler.handle_message(apollo_socket, message, apollo_socket.message_handler_opts) do
-        {:ok, new_opts} ->
-          # update self with new handler context
-          {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
-
-        {:reply, %OperationMessage{} = message, new_opts} ->
-          send_message(apollo_socket, message)
-          {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
-
-        {:reply, messages, new_opts} when is_list(messages) ->
-          Enum.each(messages, &send_message(apollo_socket, &1))
-          {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
-
-        {:subscribed, _, new_opts} ->
-          {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
-      end
+      result = apollo_socket.message_handler.handle_message(apollo_socket, message, apollo_socket.message_handler_opts)
+      process_message_handler_result(apollo_socket, result)
     rescue
       e ->
         Logger.debug("Unexpected exception #{inspect e}")
         send_message(apollo_socket, OperationMessage.new_connection_error(%{
           message: ~s/An error occurred processing the message "#{json_string}"/
         }))
+    end
+  end
+
+  def handle_message_handler_info(apollo_socket, message) do
+    try do
+      result = apollo_socket.message_handler.handle_info(apollo_socket, message, apollo_socket.message_handler_opts)
+      process_message_handler_result(apollo_socket, result)
+    rescue
+      e ->
+        Logger.error("Unexpected exception #{inspect e}")
     end
   end
 
@@ -58,6 +54,26 @@ defmodule ApolloSocket do
     send(apollo_socket.websocket, {:send_json, json_string})
 
     {:ok, apollo_socket}
+  end
+
+  def send_message_handler_info(apollo_socket, message) do
+    send(apollo_socket.websocket, {:message_handler, message})
+    {:ok, apollo_socket}
+  end
+
+  defp process_message_handler_result(apollo_socket, {:ok, new_opts}) do
+    {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
+  end
+  defp process_message_handler_result(apollo_socket, {:reply, %OperationMessage{} = message, new_opts}) do
+    send_message(apollo_socket, message)
+    {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
+  end
+  defp process_message_handler_result(apollo_socket, {:reply, messages, new_opts}) when is_list(messages) do
+    Enum.each(messages, &send_message(apollo_socket, &1))
+    {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
+  end
+  defp process_message_handler_result(apollo_socket, {:subscribed, _, new_opts}) do
+    {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
   end
 
   defp create_socket(%{websocket: pid, message_handler: module}, opts) when is_pid(pid) do

@@ -13,6 +13,7 @@ defmodule ApolloSocket.MessageHandler do
   @callback handle_connection_init(apollo_socket, map(), message_handler_opts) :: message_handler_result
   @callback handle_start(apollo_socket, String.t, String.t, String.t, map(), message_handler_opts) :: message_handler_result
   @callback handle_stop(apollo_socket, String.t, message_handler_opts) :: message_handler_result
+  @callback handle_info(apollo_socket, any(), message_handler_opts) :: message_handler_result
 
   def handle_connection_init(_module, _apollo_socket, _connection_params, opts) do
     {:reply, OperationMessage.new_connection_ack(), opts }
@@ -60,6 +61,11 @@ defmodule ApolloSocket.MessageHandler do
       @impl true
       def handle_stop(_apollo_socket, _operation_id, opts) do
         { :ok, opts }
+      end
+
+      @impl true
+      def handle_info(_apollo_socket, _message, opts) do
+        {:ok, opts}
       end
 
       def handle_message(apollo_socket, %OperationMessage{} = message, opts), do:
