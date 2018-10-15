@@ -25,11 +25,9 @@ defmodule ApolloSocket.MessageHandler do
 
   @doc false
   def handle_message(module, apollo_socket, %OperationMessage{ type: :gql_start, id: operation_id} = message, opts) do
-    %{
-      "operationName" => operation_name,
-      "variables" => variables,
-      "query" => graphql_doc,
-    } = message.payload
+    %{ "query" => graphql_doc } = message.payload
+    operation_name = message.payload["operationName"]
+    variables = message.payload["variables"]
 
     module.handle_start(apollo_socket, operation_id, operation_name, graphql_doc, variables, opts)
   end
