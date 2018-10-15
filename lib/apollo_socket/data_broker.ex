@@ -18,6 +18,7 @@ defmodule ApolloSocket.DataBroker do
     :pubsub, 
     :absinthe_id, 
     :operation_id,
+    :init_callback,
   ]
 
   def start_link(options) do
@@ -32,6 +33,7 @@ defmodule ApolloSocket.DataBroker do
 
     subscribe_to_data(pubsub, absinthe_id)
     monitor_id = monitor_websocket(ApolloSocket.websocket(apollo_socket))
+    call_init_callback(Keyword.get(options, :init_callback), options)
 
     {:ok, %{
       apollo_socket: apollo_socket,
@@ -84,5 +86,11 @@ defmodule ApolloSocket.DataBroker do
   def monitor_websocket(nil), do: raise "#__MODULE__ requires the pid of the hosting websocket"
   def monitor_websocket(socket) do
     Process.monitor(socket)    
+  end
+
+  defp call_init_callback(nil, _opts), do: :ok
+  defp call_init_callback(callback, opts) do
+    callback.(opts)
+    :ok
   end
 end
