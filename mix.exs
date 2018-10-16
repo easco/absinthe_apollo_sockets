@@ -23,7 +23,8 @@ defmodule ApolloSocket.MixProject do
     [
       {:absinthe, "~> 1.4"},
       {:jason, "~> 1.0"},
-      {:phoenix_pubsub, "~> 1.0"}
+      {:phoenix_pubsub, "~> 1.0"},
+      {:phoenix, "~> 1.4.0-rc", override: true}
     ]
   end
 end
