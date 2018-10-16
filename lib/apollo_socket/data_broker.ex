@@ -76,6 +76,8 @@ defmodule ApolloSocket.DataBroker do
     send_data_result(proc_message, state)
   end
 
+  def handle_info(_, state), do: {:noreply, state}
+
   defp send_data_result(proc_message, state) when is_map(proc_message) do
     op_message = data_message_for_result(state.operation_id, proc_message)
     ApolloSocket.send_message(state.apollo_socket, op_message)
