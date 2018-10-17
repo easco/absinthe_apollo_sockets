@@ -21,6 +21,8 @@ defmodule ApolloCowboyExample do
       phoenix_pubsub(ApolloCowboyExample.PubSub),
       absinthe_subscriptions(ApolloCowboyExample.Absinthe.PubSub),
       {DynamicSupervisor, strategy: :one_for_one, name: ApolloCowboyExample.BrokerSupervisor},
+      {ApolloSocket.Supervisor, name: ApolloCowboyExample.ApolloSocket.Supervisor},
+      
       cowboy_server(8080, dispatch)
     ]
 
