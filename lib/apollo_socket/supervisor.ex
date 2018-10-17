@@ -18,10 +18,15 @@ defmodule ApolloSocket.Supervisor do
   def init({name}) when is_atom(name) do
     watcher_name = Module.concat(name, DataBrokerWatcher)
     broker_sup_name = Module.concat(name, BrokerSupervisor)
+    broker_registry_name = Module.concat(name, BrokerRegistry)
 
     children = [
       {DynamicSupervisor, strategy: :one_for_one, name: broker_sup_name},
-      {ApolloSocket.DataBrokerWatcher, broker_sup: broker_sup_name, name: watcher_name},
+      {Registry, keys: :unique, name: broker_registry_name},
+      {ApolloSocket.DataBrokerWatcher, 
+        broker_sup: broker_sup_name,
+        broker_registry: broker_registry_name,
+        name: watcher_name},
     ]
     Supervisor.init(children, strategy: :one_for_one)
   end

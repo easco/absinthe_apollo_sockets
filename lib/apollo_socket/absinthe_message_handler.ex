@@ -2,13 +2,13 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   use ApolloSocket.MessageHandler
 
   alias ApolloSocket.OperationMessage
+  alias ApolloSocket.DataBrokerWatcher
   require Logger
 
   @impl ApolloSocket.MessageHandler
   def init(opts) when is_list(opts) do
-    {known_opts, _} = Keyword.split(opts, [:schema, :pubsub, :broker_sup])
-    
-    Enum.into(known_opts, %{broker_processes: []})
+    {known_opts, _} = Keyword.split(opts, [:schema, :pubsub, :broker_watcher])
+    Enum.into(known_opts, %{})
   end
 
   @impl ApolloSocket.MessageHandler
@@ -21,15 +21,13 @@ defmodule ApolloSocket.AbsintheMessageHandler do
     Logger.debug("Query result #{inspect result}")
 
     case result do
-      {:ok, %{"subscribed" => absinthe_subscription_id}} ->
-
-        {:ok, _} = DynamicSupervisor.start_child(opts[:broker_sup],
-          data_broker_child_spec(
-            opts[:pubsub],
-            absinthe_subscription_id,
-            operation_id,
-            apollo_socket
-            ))
+      {:ok, %{"subscribed" => absinthe_id}} ->
+        DataBrokerWatcher.start_data_broker(
+          opts.broker_watcher,
+          apollo_socket,
+          opts[:pubsub],
+          absinthe_id,
+          operation_id)
         {:ok, opts}
 
       {:ok, query_response } -> 
@@ -38,46 +36,11 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   end
 
   @impl ApolloSocket.MessageHandler
-  def handle_stop(_apollo_socket, operation_id, opts) do
-    data_broker_pids =
-      opts.broker_processes
-      |> Enum.filter(&(elem(&1, 0) == operation_id))
-      |> Enum.map(&elem(&1, 1))
-
-    Enum.each(data_broker_pids, &ApolloSocket.DataBroker.stop/1)
-
-    new_broker_processes =
-      opts.broker_processes
-      |> Enum.filter(&(elem(&1, 0) != operation_id))
-
-    case data_broker_pids do
-      [] ->
-        {:reply, OperationMessage.new_connection_error(message: "No subscription active with id: #{operation_id}"), opts}
-      _ ->
-        {:reply, OperationMessage.new_complete(operation_id), %{opts | broker_processes: new_broker_processes}}
-    end
-  end
-
-  @impl ApolloSocket.MessageHandler
-  def handle_info(_apollo_socket, {:data_broker_started, operation_id, pid}, opts) do
-    new_opts = %{opts | broker_processes: [{operation_id, pid} | opts.broker_processes]}
-    {:ok, new_opts}
-  end
-
-  defp data_broker_child_spec(pubsub, absinthe_subscription_id, operation_id, socket) do
-    %{
-      type: :worker,
-      id: absinthe_subscription_id,
-      start: { ApolloSocket.DataBroker, :start_link, [[
-          pubsub: pubsub,
-          absinthe_id: absinthe_subscription_id,
-          operation_id: operation_id,
-          apollo_socket: socket,
-          init_callback: &__MODULE__.data_broker_init_callback/1
-        ]]
-      },
-      restart: :transient
-    }
+  def handle_stop(apollo_socket, operation_id, opts) do
+    DataBrokerWatcher.stop_data_broker(opts.broker_watcher, apollo_socket, operation_id)
+    # TODO: Handle reporting an error if the subscription doesn't exist
+      # {:reply, OperationMessage.new_connection_error(message: "No subscription active with id: #{operation_id}"), opts}
+    {:reply, OperationMessage.new_complete(operation_id), opts}
   end
 
   defp add_operation_name(opts, nil), do: opts
@@ -91,9 +54,5 @@ defmodule ApolloSocket.AbsintheMessageHandler do
         Map.get(query_response, :errors)),
       OperationMessage.new_complete(operation_id)
     ]
-  end
-
-  def data_broker_init_callback(opts) do
-    ApolloSocket.send_message_handler_info(opts[:apollo_socket], {:data_broker_started, opts[:operation_id], self()})
   end
 end
