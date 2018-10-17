@@ -8,7 +8,7 @@ defmodule ApolloCowboyExample.Counter do
   def counter(args, _context) do
     counter_id = args[:id]
 
-    Agent.get_and_update(__MODULE__, fn map ->
+    result = Agent.get_and_update(__MODULE__, fn map ->
       Map.get_and_update(map, counter_id, fn counter ->
         case counter do
           nil -> 
@@ -19,21 +19,23 @@ defmodule ApolloCowboyExample.Counter do
         end
       end)
     end)
+    {:ok, result}
   end
 
   def reset(args, _context) do
     counter_id = args[:id]
 
-    Agent.get_and_update(__MODULE__, fn map ->
+    result = Agent.get_and_update(__MODULE__, fn map ->
       new_counter = %{ id: counter_id, value: 0}
       {new_counter, Map.put(map, counter_id, new_counter)}
     end)
+    {:ok, result}
   end
 
   def increment(args, _context) do
     counter_id = args[:id]
 
-    Agent.get_and_update(__MODULE__, fn map ->
+    result = Agent.get_and_update(__MODULE__, fn map ->
       Map.get_and_update(map, counter_id, fn counter ->
         case counter do
           nil -> 
@@ -46,5 +48,6 @@ defmodule ApolloCowboyExample.Counter do
         end
       end)
     end)
+    {:ok, result}
   end
 end

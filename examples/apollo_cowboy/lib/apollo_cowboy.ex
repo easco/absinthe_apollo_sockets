@@ -10,7 +10,7 @@ defmodule ApolloCowboyExample do
               ApolloSocket.AbsintheMessageHandler,
               schema: ApolloCowboyExample.Schema, 
               pubsub: ApolloCowboyExample.Absinthe.PubSub,
-              broker_sup: ApolloCowboyExample.BrokerSupervisor
+              broker_watcher: ApolloCowboyExample.ApolloSocket.Supervisor.DataBrokerWatcher  # TODO: fix this
             }
           }
        ]}
