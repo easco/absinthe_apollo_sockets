@@ -1,4 +1,10 @@
 defmodule ApolloCowboyExample.Absinthe.PubSub do
+  @moduledoc """
+    Absinthe needs a PubSub system that is pinged every time the target
+    of a subscription changes.  This module implements Absinthe's subscription
+    protocol on top of a Phoenix PubSub instance.
+  """
+
   @behaviour Absinthe.Subscription.Pubsub
 
   @impl true
@@ -15,9 +21,7 @@ defmodule ApolloCowboyExample.Absinthe.PubSub do
     Phoenix.PubSub.broadcast(
       ApolloCowboyExample.PubSub,
       proxy_topic,
-      %{node: node(),
-        mutation_result: mutation_result, 
-        subscribed_fields: subscribed_fields}
+      %{node: node(), mutation_result: mutation_result, subscribed_fields: subscribed_fields}
     )
   end
 

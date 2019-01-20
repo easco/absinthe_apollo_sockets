@@ -7,7 +7,6 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   @impl ApolloSocket.MessageHandler
   def init(opts) when is_list(opts) do
     {known_opts, _} = Keyword.split(opts, [:schema, :pubsub, :broker_sup])
-    
     Enum.into(known_opts, %{})
   end
 
@@ -33,7 +32,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
             ))
         {:ok, opts}
 
-      {:ok, query_response } -> 
+      {:ok, query_response } ->
         {:reply, messages_for_result(operation_id, query_response), opts}
     end
   end
@@ -61,7 +60,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   defp messages_for_result(operation_id, query_response) when is_map(query_response) do
     [
       OperationMessage.new_data(
-        operation_id, 
+        operation_id,
         Map.get(query_response, :data),
         Map.get(query_response, :errors)),
       OperationMessage.new_complete(operation_id)

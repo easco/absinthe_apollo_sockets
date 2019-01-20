@@ -55,6 +55,8 @@ defmodule ApolloSocket do
     |>OperationMessage.to_json_map()
     |>Jason.encode!()
 
+    Logger.debug("Json Content: #{inspect json_string}")
+
     send(apollo_socket.websocket, {:send_json, json_string})
 
     {:ok, apollo_socket}
@@ -65,8 +67,8 @@ defmodule ApolloSocket do
 
     %__MODULE__{
       websocket: pid,
-      message_handler: module, 
+      message_handler: module,
       message_handler_opts: message_handler_opts
     }
   end
-end 
+end

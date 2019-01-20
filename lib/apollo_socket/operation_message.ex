@@ -54,7 +54,7 @@ defmodule ApolloSocket.OperationMessage do
   The error_object should consist of things that can be serialized to JSON so it can be sent back to the client.
   """
   def new_connection_error(error_object), do: %__MODULE__{type: :gql_connection_error, payload: error_object}
-  
+
   @doc """
   Creates a GQL_ERROR message with the given error_object.
   The error_object should consist of things that can be serialized to JSON so it can be sent back to the client.
@@ -83,6 +83,6 @@ defmodule ApolloSocket.OperationMessage do
   Enum.each(@messages, fn({message_atom, type_string}) ->
     defp field_to_json_map({:type, unquote(message_atom)}, map), do: Map.put(map, "type", unquote(type_string))
   end)
-  
+
   defp field_to_json_map({:type, type}, map), do: Map.put(map, "type", type)
 end

@@ -1,0 +1,25 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "parcel build assets/main.js -d priv/static -o main.js",
+    "watch": "parcel watch assets/main.js -d priv/static -o main.js"
+  },
+  "staticFiles": {
+    "staticPath": "assets/static",
+    "watcherGlob": "**"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.10.3",
+    "parcel-plugin-static-files-copy": "^2.0.0",
+    "parcel-plugin-stdin": "^0.1.1",
+    "phoenix": "^1.4",
+    "phoenix_html": "^2.11"
+  },
+  "dependencies": {
+    "apollo-boost": "^0.1",
+    "apollo-link-ws": "^1.0.12",
+    "graphql": "^14.1",
+    "graphql-tag": "^2.10",
+    "subscriptions-transport-ws": "^0.9.15"
+  }
+}

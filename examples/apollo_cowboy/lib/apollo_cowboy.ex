@@ -1,26 +1,41 @@
 defmodule ApolloCowboyExample do
   def start(_mode, _args) do
-    # define the router for cowboy that includes a socket handler
-    # for the apollo sockets.
+    # Define the router for cowboy that includes a socket handler
+    # for the apollo sockets and a couple of static handlers
+    # that serve up the example website.
     dispatch =
       :cowboy_router.compile([
-        {:_, [
-          {"/socket/websocket", ApolloSocket.CowboySocketHandler,
+        {:_,
+         [
+           {"/", :cowboy_static, {:priv_file, :apollo_cowboy, "static/index.html"}},
+           {"/socket/websocket", ApolloSocket.CowboySocketHandler,
             {
               ApolloSocket.AbsintheMessageHandler,
-              schema: ApolloCowboyExample.Schema, 
+              schema: ApolloCowboyExample.Schema,
               pubsub: ApolloCowboyExample.Absinthe.PubSub,
               broker_sup: ApolloCowboyExample.BrokerSupervisor
-            }
-          }
-       ]}
+            }},
+           {"/[...]", :cowboy_static, {:priv_dir, :apollo_cowboy, "static"}}
+         ]}
       ])
 
     children = [
+      # This is the supervisor that provides a set of counters in the schema
       {ApolloCowboyExample.Counter, []},
+
+      # Absinthe uses a PubSub system to handle subscriptions.
+      # Ours is built on top of Phoenix PubSub so we create that
       phoenix_pubsub(ApolloCowboyExample.PubSub),
+
+      # This is the Absinthe PubSub that makes use of the Phoenix Pubsub
       absinthe_subscriptions(ApolloCowboyExample.Absinthe.PubSub),
+
+      # When a subscription is created we create an intermediary process that
+      # translates from the Absinthe PubSub to the Apollo socket protocol
+      # This supervisor watches those subscriptions.
       {DynamicSupervisor, strategy: :one_for_one, name: ApolloCowboyExample.BrokerSupervisor},
+
+      # And we start the web server, on port 8080
       cowboy_server(8080, dispatch)
     ]
 
@@ -52,8 +67,7 @@ defmodule ApolloCowboyExample do
     %{
       type: :supervisor,
       id: :cowboy,
-      start:
-        {:cowboy, :start_http, [:http_server, 100, [port: port], [env: [dispatch: dispatch]]]}
+      start: {:cowboy, :start_clear, [:http_server, [port: port], %{env: %{dispatch: dispatch}}]}
     }
   end
 end
