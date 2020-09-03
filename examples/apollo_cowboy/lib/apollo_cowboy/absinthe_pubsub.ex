@@ -8,6 +8,11 @@ defmodule ApolloCowboyExample.Absinthe.PubSub do
   @behaviour Absinthe.Subscription.Pubsub
 
   @impl true
+  def node_name() do
+    "ApolloCowboyExampleNode"
+  end
+
+  @impl true
   def subscribe(topic) do
     Phoenix.PubSub.subscribe(ApolloCowboyExample.PubSub, topic)
   end

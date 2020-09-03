@@ -41,6 +41,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
     %{
       type: :worker,
       id: absinthe_subscription_id,
+      restart: :temporary,
       start: { ApolloSocket.DataBroker, :start_link, [[
           pubsub: pubsub,
           absinthe_id: absinthe_subscription_id,

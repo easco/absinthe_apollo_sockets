@@ -13,10 +13,10 @@ defmodule ApolloCowboyExample.Counter do
         case counter do
           nil ->
             new_counter = %{id: counter_id, value: 0}
-            {new_counter, new_counter}
+            {{:ok, new_counter}, new_counter}
 
           result ->
-            {result, result}
+            {{:ok, result}, result}
         end
       end)
     end)
@@ -27,7 +27,7 @@ defmodule ApolloCowboyExample.Counter do
 
     Agent.get_and_update(__MODULE__, fn map ->
       new_counter = %{id: counter_id, value: 0}
-      {new_counter, Map.put(map, counter_id, new_counter)}
+      {{:ok, new_counter}, Map.put(map, counter_id, new_counter)}
     end)
   end
 
@@ -39,11 +39,11 @@ defmodule ApolloCowboyExample.Counter do
         case counter do
           nil ->
             new_counter = %{id: counter_id, value: 1}
-            {new_counter, new_counter}
+            {{:ok, new_counter}, new_counter}
 
           %{id: ^counter_id, value: value} ->
             new_counter = %{id: counter_id, value: value + 1}
-            {new_counter, new_counter}
+            {{:ok, new_counter}, new_counter}
         end
       end)
     end)

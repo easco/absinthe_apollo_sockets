@@ -27,8 +27,17 @@ const mySubscription = client.subscribe({
       }
     }
   `
-}).then((value) => {console.log("New counter value" + value.toString())})
+})
 
-// mySubscription.subscribe({
-//   next: (value) => {console.log("New counter value" + value.toString())}
-// })
+mySubscription.subscribe({
+  next: (value) => {console.log(value.data.counter.value)}
+})
+
+client.mutate({
+  mutation: gql`
+    mutation {
+      increment_counter(id: "first") {
+        value
+      }
+    }
+  `})

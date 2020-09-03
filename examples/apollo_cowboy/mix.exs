@@ -22,11 +22,11 @@ defmodule ApolloCowboy.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:cowboy, "~>2.6"},
-      {:absinthe, "~>1.4"},
-      {:jason, "~> 1.1"},
-      {:gettext, "~> 0.16"},
-      {:phoenix_pubsub, "~> 1.1"},
+      {:cowboy, "~>2.8"},
+      {:absinthe, "~>1.5"},
+      {:jason, "~> 1.2"},
+      {:gettext, "~> 0.18"},
+      {:phoenix_pubsub, "~> 2.0"},
       {:apollo_socket, path: "../../"}
     ]
   end

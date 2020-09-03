@@ -25,7 +25,7 @@ defmodule ApolloCowboyExample do
 
       # Absinthe uses a PubSub system to handle subscriptions.
       # Ours is built on top of Phoenix PubSub so we create that
-      phoenix_pubsub(ApolloCowboyExample.PubSub),
+      {Phoenix.PubSub, [adapter_name: Phoenix.PubSub.PG2, name: ApolloCowboyExample.PubSub]},
 
       # This is the Absinthe PubSub that makes use of the Phoenix Pubsub
       absinthe_subscriptions(ApolloCowboyExample.Absinthe.PubSub),
@@ -45,14 +45,6 @@ defmodule ApolloCowboyExample do
       strategy: :one_for_one,
       name: ApolloCowboyExampleSupervisor
     )
-  end
-
-  def phoenix_pubsub(name) do
-    %{
-      type: :supervisor,
-      id: name,
-      start: {Phoenix.PubSub.PG2, :start_link, [name, []]}
-    }
   end
 
   def absinthe_subscriptions(name) do
