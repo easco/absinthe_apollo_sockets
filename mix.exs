@@ -21,8 +21,8 @@ defmodule ApolloSocket.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:absinthe, "~> 1.5"},
-      {:jason, "~> 1.2"},
+      {:absinthe, "~> 1.6.3"},
+      {:jason, "~> 1.2.2"},
       {:phoenix_pubsub, "~> 2.0"}
     ]
   end
