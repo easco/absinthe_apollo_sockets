@@ -4,7 +4,6 @@ defmodule ApolloSocket.DataBroker do
   alias ApolloSocket.OperationMessage
 
   require Logger
-  require IEx
 
   @moduledoc """
   This module implements a GenServer that sits as an intermediary between
@@ -22,8 +21,10 @@ defmodule ApolloSocket.DataBroker do
   ]
 
   def start_link(options) do
+    operation_id = Keyword.get(options, :operation_id)
     {broker_options, other_options} = Keyword.split(options, @broker_options)
-    GenServer.start_link(__MODULE__, broker_options, other_options)
+    start_options = Keyword.put(other_options, :name, via_tuple(operation_id))
+    GenServer.start_link(__MODULE__, broker_options, start_options)
   end
 
   def init(options) do
@@ -43,14 +44,25 @@ defmodule ApolloSocket.DataBroker do
       }}
   end
 
-  def handle_info({:DOWN, _ref, :process, pid, reason}, state) do
-    IO.puts("Tearing down data broker #{inspect pid} #{reason}")
-    # my websocket went down.  This process can exit now
-    Process.exit(self(), reason)
-    {:noreply, state}
+  def unsubscribe(operation_id) do
+    GenServer.call(via_tuple(operation_id), :unsubscribe)
   end
 
-  def handle_info(%{data: _, errors: _} = proc_message, state) do
+  def handle_call(:unsubscribe, _from, %{pubsub: pubsub, absinthe_id: absinthe_id} = state) do
+    result = pubsub.unsubscribe(absinthe_id)
+    Logger.debug("id #{state.operation_id} unusbscribed #{inspect(result)}")
+
+    {:stop, :normal, result, state}
+  end
+
+  def handle_info({:DOWN, _ref, :process, pid, reason}, state) do
+    # Websocket went down.  This process can exit now
+    Logger.debug("id #{state.operation_id} received :DOWN #{inspect(pid)} #{reason}")
+
+    {:stop, reason, state}
+  end
+
+  def handle_info(%{data: _} = proc_message, state) do
     send_data_result(proc_message, state)
   end
 
@@ -58,32 +70,38 @@ defmodule ApolloSocket.DataBroker do
     send_data_result(proc_message, state)
   end
 
-  def handle_info(%{data: _} = proc_message, state) do
+  def handle_info(proc_message, state) when is_map(proc_message) do
+    Logger.warn("id #{state.operation_id} no data or errors in message #{inspect(proc_message)}")
+
     send_data_result(proc_message, state)
   end
 
-  defp send_data_result(proc_message, state) when is_map(proc_message) do
+  defp send_data_result(proc_message, state) do
     op_message = data_message_for_result(state.operation_id, proc_message)
     ApolloSocket.send_message(state.apollo_socket, op_message)
 
     {:noreply, state}
   end
 
-  defp data_message_for_result(operation_id, query_response) when is_map(query_response) do
+  defp data_message_for_result(operation_id, query_response) do
     OperationMessage.new_data(
       operation_id,
       Map.get(query_response, :data),
       Map.get(query_response, :errors))
   end
 
-  def subscribe_to_data(nil, _), do: raise "#{__MODULE__} requires the Absinthe PubSub module to subscribe to"
-  def subscribe_to_data(_, nil), do: raise "#{__MODULE__} requires an Absinthe subscription id"
-  def subscribe_to_data(pubsub, absinthe_id) do
+  defp subscribe_to_data(nil, _), do: raise "#{__MODULE__} requires the Absinthe PubSub module to subscribe to"
+  defp subscribe_to_data(_, nil), do: raise "#{__MODULE__} requires an Absinthe subscription id"
+  defp subscribe_to_data(pubsub, absinthe_id) do
     pubsub.subscribe(absinthe_id)
   end
 
-  def monitor_websocket(nil), do: raise "#__MODULE__ requires the pid of the hosting websocket"
-  def monitor_websocket(socket) do
+  defp monitor_websocket(nil), do: raise "#{__MODULE__} requires the pid of the hosting websocket"
+  defp monitor_websocket(socket) do
     Process.monitor(socket)
+  end
+
+  defp via_tuple(operation_id) do
+    {:via, :gproc, {:n, :l, {:name, operation_id}}}
   end
 end

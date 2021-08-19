@@ -1,7 +1,7 @@
 defmodule ApolloSocket.AbsintheMessageHandler do
   use ApolloSocket.MessageHandler
 
-  alias ApolloSocket.OperationMessage
+  alias ApolloSocket.{DataBroker,OperationMessage}
   require Logger
 
   @impl ApolloSocket.MessageHandler
@@ -35,6 +35,12 @@ defmodule ApolloSocket.AbsintheMessageHandler do
       {:ok, query_response } ->
         {:reply, messages_for_result(operation_id, query_response), opts}
     end
+  end
+
+  @impl ApolloSocket.MessageHandler
+  def handle_stop(_apollo_socket, operation_id, opts) do
+    _ = DataBroker.unsubscribe(operation_id)
+    {:ok, opts}
   end
 
   defp data_broker_child_spec(pubsub, absinthe_subscription_id, operation_id, socket) do
