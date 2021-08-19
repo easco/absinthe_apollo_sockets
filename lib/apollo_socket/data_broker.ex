@@ -21,9 +21,15 @@ defmodule ApolloSocket.DataBroker do
   ]
 
   def start_link(options) do
-    operation_id = Keyword.get(options, :operation_id)
+    bad_options =
+      @broker_options
+      |> Enum.any?(fn option -> is_nil(Keyword.get(options, option)) end)
+    if bad_options do
+      {:error, "DataBroker requires all of these options: #{@broker_options}"}
+    end
+
     {broker_options, other_options} = Keyword.split(options, @broker_options)
-    start_options = Keyword.put(other_options, :name, via_tuple(operation_id))
+    start_options = Keyword.put(other_options, :name, via_tuple(options))
     GenServer.start_link(__MODULE__, broker_options, start_options)
   end
 
@@ -44,8 +50,8 @@ defmodule ApolloSocket.DataBroker do
       }}
   end
 
-  def unsubscribe(operation_id) do
-    GenServer.call(via_tuple(operation_id), :unsubscribe)
+  def unsubscribe(apollo_socket, operation_id) do
+    GenServer.call(via_tuple(apollo_socket, operation_id), :unsubscribe)
   end
 
   def handle_call(:unsubscribe, _from, %{pubsub: pubsub, absinthe_id: absinthe_id} = state) do
@@ -101,7 +107,14 @@ defmodule ApolloSocket.DataBroker do
     Process.monitor(socket)
   end
 
-  defp via_tuple(operation_id) do
-    {:via, :gproc, {:n, :l, {:name, operation_id}}}
+  defp via_tuple(options) when is_list(options) do
+    apollo_socket = Keyword.fetch!(options, :apollo_socket)
+    operation_id = Keyword.fetch!(options, :operation_id)
+    via_tuple(apollo_socket, operation_id)
+  end
+
+  defp via_tuple(%ApolloSocket{websocket: websocket_pid}, operation_id) do
+    name = {:apollo_broker, websocket_pid, operation_id}
+    {:via, :gproc, {:n, :l, {:name, name}}}
   end
 end

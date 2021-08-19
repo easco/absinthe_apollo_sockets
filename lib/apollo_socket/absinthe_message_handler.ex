@@ -38,8 +38,8 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   end
 
   @impl ApolloSocket.MessageHandler
-  def handle_stop(_apollo_socket, operation_id, opts) do
-    _ = DataBroker.unsubscribe(operation_id)
+  def handle_stop(apollo_socket, operation_id, opts) do
+    _ = DataBroker.unsubscribe(apollo_socket, operation_id)
     {:ok, opts}
   end
 
