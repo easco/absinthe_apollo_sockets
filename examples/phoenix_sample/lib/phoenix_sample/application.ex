@@ -8,7 +8,7 @@ defmodule PhoenixSample.Application do
   def start(_type, _args) do
     children = [
       # This is the supervisor that provides a set of counters in the schema
-      {PhoenixSample.Counter, []},
+      PhoenixSample.Counter,
 
       # Start the Telemetry supervisor
       PhoenixSampleWeb.Telemetry,
@@ -19,7 +19,7 @@ defmodule PhoenixSample.Application do
       # Start and Absinthe Subscription pointed at our adapter module
       # that translates from Absinthe related notifications to
       # the Phoenix PubSub system started above
-      {Absinthe.Subscription, [PhoenixSample.Absinthe.PubSub]},
+      {Absinthe.Subscription, PhoenixSample.Absinthe.PubSub},
 
       # When a subscription is created we create an intermediary process that
       # translates from the Absinthe PubSub to the Apollo socket protocol
