@@ -7,7 +7,7 @@ To start the cowboy server:
 
   * Install dependencies with `mix deps.get`
   * Install Node.js dependencies with `npm install` inside the `assets` directory
-  * Start Phoenix endpoint with `mix run --no-halt`
+  * Start dev server with `mix run --no-halt`
 
 After starting, connect to the Apollo socket at:
 
