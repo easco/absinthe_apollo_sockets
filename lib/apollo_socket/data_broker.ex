@@ -4,7 +4,6 @@ defmodule ApolloSocket.DataBroker do
   alias ApolloSocket.OperationMessage
 
   require Logger
-  require IEx
 
   @moduledoc """
   This module implements a GenServer that sits as an intermediary between
