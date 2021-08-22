@@ -14,7 +14,7 @@ defmodule ApolloCowboy.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      mod: {ApolloCowboyExample, []},
+      mod: {ApolloCowboyExample.Application, []},
       extra_applications: [:logger]
     ]
   end
@@ -22,8 +22,8 @@ defmodule ApolloCowboy.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:cowboy, "~>2.8"},
-      {:absinthe, "~>1.5"},
+      {:cowboy, "~> 2.8"},
+      {:absinthe, "~> 1.5"},
       {:jason, "~> 1.2"},
       {:gettext, "~> 0.18"},
       {:phoenix_pubsub, "~> 2.0"},
