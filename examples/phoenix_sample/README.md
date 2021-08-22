@@ -15,7 +15,7 @@ that handles the GraphQL queries, mutations and subscriptions.
 The value for the variable should be different than "websocket",
 which Phoenix reserves for its channels.
 
-The default is "apollo_socket", meaning that you would connect using 
+The default is "apollo_socket", meaning that you would connect using
 the URL:
 
 ws://localhost:4000/socket/apollo_socket
