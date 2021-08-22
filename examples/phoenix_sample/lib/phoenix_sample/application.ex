@@ -22,7 +22,7 @@ defmodule PhoenixSample.Application do
       # Start and Absinthe Subscription pointed at our adapter module
       # that translates from Absinthe related notifications to
       # the Phoenix PubSub system started above
-      {Absinthe.Subscription, [PhoenixSample.Absinthe.PubSub]},
+      {Absinthe.Subscription, PhoenixSample.Absinthe.PubSub},
 
       # When a subscription is created we create an intermediary process that
       # translates from the Absinthe PubSub to the Apollo socket protocol
