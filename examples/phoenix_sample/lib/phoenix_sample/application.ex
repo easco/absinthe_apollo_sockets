@@ -8,13 +8,16 @@ defmodule PhoenixSample.Application do
   def start(_type, _args) do
     children = [
       # This is the supervisor that provides a set of counters in the schema
-      {PhoenixSample.Counter, []},
+      PhoenixSample.Counter,
 
       # Start the Telemetry supervisor
       PhoenixSampleWeb.Telemetry,
 
       # Start the PubSub system
       {Phoenix.PubSub, name: PhoenixSample.PubSub},
+
+      # Start the Endpoint (http/https)
+      PhoenixSampleWeb.Endpoint,
 
       # Start and Absinthe Subscription pointed at our adapter module
       # that translates from Absinthe related notifications to
@@ -24,10 +27,7 @@ defmodule PhoenixSample.Application do
       # When a subscription is created we create an intermediary process that
       # translates from the Absinthe PubSub to the Apollo socket protocol
       # This supervisor watches those subscriptions.
-      {DynamicSupervisor, strategy: :one_for_one, name: PhoenixSample.BrokerSupervisor},
-
-      # Start the Endpoint (http/https)
-      PhoenixSampleWeb.Endpoint
+      {DynamicSupervisor, strategy: :one_for_one, name: PhoenixSample.BrokerSupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
