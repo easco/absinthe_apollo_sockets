@@ -17,17 +17,10 @@ defmodule ApolloSocket.DataBroker do
     :apollo_socket,
     :pubsub,
     :absinthe_id,
-    :operation_id,
+    :operation_id
   ]
 
   def start_link(options) do
-    bad_options =
-      @broker_options
-      |> Enum.any?(fn option -> is_nil(Keyword.get(options, option)) end)
-    if bad_options do
-      {:error, "DataBroker requires all of these options: #{@broker_options}"}
-    end
-
     {broker_options, other_options} = Keyword.split(options, @broker_options)
     start_options = Keyword.put(other_options, :name, via_tuple(options))
     GenServer.start_link(__MODULE__, broker_options, start_options)
@@ -63,7 +56,7 @@ defmodule ApolloSocket.DataBroker do
 
   def handle_info({:DOWN, _ref, :process, pid, reason}, state) do
     # Websocket went down.  This process can exit now
-    Logger.debug("id #{state.operation_id} received :DOWN #{inspect(pid)} #{reason}")
+    Logger.info("id #{state.operation_id} tearing down data broker #{inspect(pid)} #{reason}")
 
     {:stop, reason, state}
   end
