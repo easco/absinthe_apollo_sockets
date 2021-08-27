@@ -7,6 +7,8 @@
 # General application configuration
 use Mix.Config
 
+socket_path = System.get_env("APOLLO_SOCKET_PATH", "apollo_socket")
+
 # Configures the endpoint
 config :phoenix_sample, PhoenixSampleWeb.Endpoint,
   url: [host: "localhost"],
@@ -19,7 +21,7 @@ config :phoenix_sample, PhoenixSampleWeb.Endpoint,
   # ahead of the Phoenix endpoint adapter.
   http: [dispatch: [
           {:_, [
-              {"/socket/apollo_socket", ApolloSocket.CowboySocketHandler,
+              {"/socket/#{socket_path}", ApolloSocket.CowboySocketHandler,
                 { # ApolloSocket configuration settings
                   ApolloSocket.AbsintheMessageHandler,
                   schema: PhoenixSample.Schema,

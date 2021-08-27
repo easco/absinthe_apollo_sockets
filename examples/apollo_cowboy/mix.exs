@@ -14,7 +14,7 @@ defmodule ApolloCowboy.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      mod: {ApolloCowboyExample, []},
+      mod: {ApolloCowboyExample.Application, []},
       extra_applications: [:logger]
     ]
   end
