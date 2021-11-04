@@ -1,7 +1,7 @@
 // We need to import the CSS so that webpack will load it.
 // The MiniCssExtractPlugin is used to separate it out into
 // its own CSS file.
-import "../css/app.scss"
+import "../css/app.css"
 
 // webpack automatically bundles all modules in your
 // entry points. Those entry points can be configured
@@ -14,28 +14,31 @@ import "../css/app.scss"
 //
 import "phoenix_html"
 
-import ApolloClient from 'apollo-client'
-import { SubscriptionClient } from 'subscriptions-transport-ws'
-import { InMemoryCache } from 'apollo-cache-inmemory'
-import { WebSocketLink } from 'apollo-link-ws'
-import gql from 'graphql-tag'
+import { 
+  ApolloClient, 
+  HttpLink, 
+  InMemoryCache, 
+  gql } from '@apollo/client/core';
 
-const GRAPHQL_SUBSCRIPTIONS_ENDPOINT = "ws://localhost:4000/socket/apollo_socket"
+import { WebSocketLink } from '@apollo/client/link/ws';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
 
-const subscriptionClient = new SubscriptionClient(GRAPHQL_SUBSCRIPTIONS_ENDPOINT, {
-  reconnect: true
+const GRAPHQL_ENDPOINT = 'ws://localhost:4000/socket/apollo_socket';
+
+const wsLink = new WebSocketLink({
+  uri: GRAPHQL_ENDPOINT,
+  options: {
+    reconnect: true
+  }
 });
 
-const link = new WebSocketLink(subscriptionClient);
-const cache = new InMemoryCache()
-
-const client = new ApolloClient({
-  cache,
-  link
+const apolloClient = new ApolloClient({
+  link: wsLink,
+  cache: new InMemoryCache()
 });
 
-// Subscribe to the value of the "first" counter
-const mySubscription = client.subscribe({
+//Subscribe to the value of the "first" counter
+const mySubscription = apolloClient.subscribe({
   query: gql`
     subscription {
       counter(id: "first") {
@@ -52,7 +55,7 @@ mySubscription.subscribe({
 
 // increment the counter
 for(var i = 0; i < 5; i++) {
-  client.mutate({
+  apolloClient.mutate({
     mutation: gql`
       mutation {
         increment_counter(id: "first") {

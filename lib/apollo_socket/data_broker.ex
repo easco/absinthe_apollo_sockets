@@ -63,6 +63,7 @@ defmodule ApolloSocket.DataBroker do
   end
 
   defp send_data_result(proc_message, state) when is_map(proc_message) do
+    Logger.debug("send_data_result")
     op_message = data_message_for_result(state.operation_id, proc_message)
     ApolloSocket.send_message(state.apollo_socket, op_message)
 

@@ -22,8 +22,8 @@ defmodule ApolloCowboy.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:cowboy, "~>2.8"},
-      {:absinthe, "~>1.5"},
+      {:cowboy, "~>2.9"},
+      {:absinthe, "~>1.6.6"},
       {:jason, "~> 1.2"},
       {:gettext, "~> 0.18"},
       {:phoenix_pubsub, "~> 2.0"},

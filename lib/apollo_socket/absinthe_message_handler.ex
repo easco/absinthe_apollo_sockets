@@ -11,7 +11,10 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   end
 
   @impl ApolloSocket.MessageHandler
-  def handle_start(apollo_socket, operation_id, operation_name, graphql_doc, variables, opts) do
+  def handle_start(apollo_socket, operation_id,
+                   operation_name, graphql_doc,
+                   variables, opts) do
+
     absinthe_opts = [context: %{pubsub: opts[:pubsub]}]
     |> add_operation_name(operation_name)
     |> add_variables(variables)
@@ -22,7 +25,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
 
     case result do
       {:ok, %{"subscribed" => absinthe_subscription_id}} ->
-
+        Logger.debug("Beginning subscribe operation #{operation_id}")
         {:ok, _} = DynamicSupervisor.start_child(opts[:broker_sup],
           data_broker_child_spec(
             opts[:pubsub],
@@ -37,6 +40,13 @@ defmodule ApolloSocket.AbsintheMessageHandler do
     end
   end
 
+  @impl ApolloSocket.MessageHandler
+  def handle_stop(_apollo_socket, operation_id, opts) do
+    Logger.debug("Stopping subscribe operation #{operation_id}")
+    GenServer.stop(via_proc_id(operation_id), :normal)
+    { :ok, opts }
+  end
+
   defp data_broker_child_spec(pubsub, absinthe_subscription_id, operation_id, socket) do
     %{
       type: :worker,
@@ -46,11 +56,14 @@ defmodule ApolloSocket.AbsintheMessageHandler do
           pubsub: pubsub,
           absinthe_id: absinthe_subscription_id,
           operation_id: operation_id,
-          apollo_socket: socket
+          apollo_socket: socket,
+          name: via_proc_id(operation_id)
         ]]
       }
     }
   end
+
+  defp via_proc_id(operation_id), do: {:via, :gproc, {:n, :l, {__MODULE__, operation_id}} }
 
   defp add_operation_name(opts, nil), do: opts
   defp add_operation_name(opts, name), do: Keyword.put(opts, :operation_name, name)

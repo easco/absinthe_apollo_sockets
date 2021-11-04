@@ -7,6 +7,7 @@ defmodule ApolloSocket do
   defstruct [:websocket, :message_handler, :message_handler_opts]
 
   def new(opts) when is_list(opts) do
+    Logger.debug("ApolloSocket: new")
     {required, other_opts} = Keyword.split(opts, [:message_handler, :websocket])
 
     required
@@ -29,10 +30,13 @@ defmodule ApolloSocket do
           {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
 
         {:reply, %OperationMessage{} = message, new_opts} ->
+          Logger.debug("ApolloSocket plain: sending #{inspect message}")
+
           send_message(apollo_socket, message)
           {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
 
         {:reply, messages, new_opts} when is_list(messages) ->
+          Logger.debug("ApolloSocket array: sending #{inspect message}")
           Enum.each(messages, &send_message(apollo_socket, &1))
           {:ok, %__MODULE__{apollo_socket | message_handler_opts: new_opts}}
 
@@ -49,13 +53,13 @@ defmodule ApolloSocket do
   end
 
   def send_message(apollo_socket, %OperationMessage{} = message) do
-    Logger.debug("ApolloSocket: sending #{inspect message}")
+  #  Logger.debug("ApolloSocket: sending #{inspect message}")
 
     json_string = message
     |>OperationMessage.to_json_map()
     |>Jason.encode!()
 
-    Logger.debug("Json Content: #{inspect json_string}")
+    # Logger.debug("Json Content: #{inspect json_string}")
 
     send(apollo_socket.websocket, {:send_json, json_string})
 

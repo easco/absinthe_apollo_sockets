@@ -1,3 +1,5 @@
+require Logger
+
 defmodule PhoenixSample.Absinthe.PubSub do
   @moduledoc """
     Absinthe needs a PubSub system that is pinged every time the target
@@ -23,6 +25,8 @@ defmodule PhoenixSample.Absinthe.PubSub do
         mutation_result,
         subscribed_fields
       ) do
+
+    Logger.info("Publishing Mutation")
     Phoenix.PubSub.broadcast(
       PhoenixSample.PubSub,
       proxy_topic,
@@ -32,6 +36,7 @@ defmodule PhoenixSample.Absinthe.PubSub do
 
   @impl true
   def publish_subscription(topic, data) do
+    Logger.info("Publishing Subscription")
     Phoenix.PubSub.broadcast(PhoenixSample.PubSub, topic, data)
   end
 end

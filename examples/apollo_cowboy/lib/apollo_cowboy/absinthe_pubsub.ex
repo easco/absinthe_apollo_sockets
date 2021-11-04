@@ -1,3 +1,5 @@
+require Logger
+
 defmodule ApolloCowboyExample.Absinthe.PubSub do
   @moduledoc """
     Absinthe needs a PubSub system that is pinged every time the target
@@ -13,11 +15,13 @@ defmodule ApolloCowboyExample.Absinthe.PubSub do
   end
 
   @impl true
+  @spec subscribe(binary) :: :ok | {:error, {:already_registered, pid}}
   def subscribe(topic) do
     Phoenix.PubSub.subscribe(ApolloCowboyExample.PubSub, topic)
   end
 
   @impl true
+  @spec publish_mutation(binary, any, any) :: :ok | {:error, any}
   def publish_mutation(
         proxy_topic,
         mutation_result,
