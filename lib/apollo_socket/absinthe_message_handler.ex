@@ -7,7 +7,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   @impl ApolloSocket.MessageHandler
   def init(opts) when is_list(opts) do
     {known_opts, _} = Keyword.split(opts, [:schema, :pubsub, :broker_sup])
-    Enum.into(known_opts, %{})
+    Enum.into(known_opts, %{ref: make_ref()})
   end
 
   @impl ApolloSocket.MessageHandler
@@ -30,7 +30,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
           data_broker_child_spec(
             opts[:pubsub],
             absinthe_subscription_id,
-            operation_id,
+            {opts[:ref], operation_id},
             apollo_socket
             ))
         {:ok, opts}
@@ -43,11 +43,15 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   @impl ApolloSocket.MessageHandler
   def handle_stop(_apollo_socket, operation_id, opts) do
     Logger.debug("Stopping subscribe operation #{operation_id}")
-    GenServer.stop(via_proc_id(operation_id), :normal)
+    GenServer.stop(via_proc_id({opts[:ref], operation_id}), :normal)
     { :ok, opts }
   end
 
-  defp data_broker_child_spec(pubsub, absinthe_subscription_id, operation_id, socket) do
+  defp data_broker_child_spec(
+    pubsub,
+    absinthe_subscription_id,
+    {ref, operation_id},
+    socket) do
     %{
       type: :worker,
       id: absinthe_subscription_id,
@@ -57,13 +61,13 @@ defmodule ApolloSocket.AbsintheMessageHandler do
           absinthe_id: absinthe_subscription_id,
           operation_id: operation_id,
           apollo_socket: socket,
-          name: via_proc_id(operation_id)
+          name: via_proc_id({ref, operation_id})
         ]]
       }
     }
   end
 
-  defp via_proc_id(operation_id), do: {:via, :gproc, {:n, :l, {__MODULE__, operation_id}} }
+  defp via_proc_id({ref, operation_id}), do: {:via, :gproc, {:n, :l, {__MODULE__, ref, operation_id}} }
 
   defp add_operation_name(opts, nil), do: opts
   defp add_operation_name(opts, name), do: Keyword.put(opts, :operation_name, name)
