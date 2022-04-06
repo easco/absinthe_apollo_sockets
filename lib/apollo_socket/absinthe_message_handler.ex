@@ -6,7 +6,7 @@ defmodule ApolloSocket.AbsintheMessageHandler do
 
   @impl ApolloSocket.MessageHandler
   def init(opts) when is_list(opts) do
-    {known_opts, _} = Keyword.split(opts, [:schema, :pubsub, :broker_sup])
+    {known_opts, _} = Keyword.split(opts, [:schema, :pubsub, :broker_sup, :context])
     Enum.into(known_opts, %{ref: make_ref()})
   end
 
@@ -14,8 +14,9 @@ defmodule ApolloSocket.AbsintheMessageHandler do
   def handle_start(apollo_socket, operation_id,
                    operation_name, graphql_doc,
                    variables, opts) do
+    context = Map.merge(opts[:context] || %{}, %{pubsub: opts[:pubsub]})
 
-    absinthe_opts = [context: %{pubsub: opts[:pubsub]}]
+    absinthe_opts = [context: context]
     |> add_operation_name(operation_name)
     |> add_variables(variables)
 
